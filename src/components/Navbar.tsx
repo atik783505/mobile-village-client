@@ -1,26 +1,40 @@
 'use client';
 import Link from 'next/link';
 import { useState } from 'react';
-import { ShoppingBag, Search, Menu, X, ChevronDown, LogOut, User as UserIcon } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, ChevronDown, LayoutDashboard, User as UserIcon } from 'lucide-react';
 import Image from 'next/image';
-import { useSession, signOut } from '@/lib/auth-client';
+import { useSession, authClient } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
+import { Avatar, Dropdown, Label } from "@heroui/react";
+import { ArrowRightFromSquare, Gear } from "@gravity-ui/icons";
+
+function getFallbackText(name?: string | null) {
+  if (!name) return "US";
+  const words = name.trim().split(" ");
+  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { data: session } = useSession();
-  const user = session?.user;
+  
+  // নিরাপদে টাইপ ডিক্লেয়ারেশন করা যাতে role চিনে
+  const user = session?.user as (NonNullable<typeof session>["user"] & { role?: string }) | undefined;
   const router = useRouter();
 
   const handleLogout = async () => {
-    await signOut({
+    await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          router.push('/signin'); // লগআউট হওয়ার পর সাইন-ইন পেজে রিডাইরেক্ট করবে
+          router.push('/signin');
         },
       },
     });
   };
+
+  // রোল অনুযায়ী সঠিক ড্যাশবোর্ড রুট নির্ধারণ
+  const dashboardHref = user?.role === 'admin' ? '/admin' : '/account';
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
@@ -28,16 +42,13 @@ export default function Navbar() {
         
         {/* লোগো */}
         <Link href="/" className="flex items-center gap-2">
-          <Image src='/assets/mobile_village.jfif' alt="Logo" width={40} height={40} className="w-10 h-10 rounded-full" />
+          <Image src='/assets/mobile_village.jfif' alt="Logo" width={40} height={40} className="w-10 h-10 rounded-full object-cover" />
           <span className="font-bold text-xl tracking-tight text-gray-900">Mobile Village</span>
         </Link>
 
         {/* ডেস্কটপ নেভিগেশন লিংক */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
-          <div className="relative group cursor-pointer flex items-center gap-1 hover:text-black py-2">
-            <span>Shop</span>
-            <ChevronDown className="w-4 h-4 text-gray-400 group-hover:rotate-180 transition-transform duration-200" />
-          </div>
+          <Link href="/shop" className="hover:text-black py-2">Shop</Link>
           <div className="relative group cursor-pointer flex items-center gap-1 hover:text-black py-2">
             <span>Categories</span>
             <ChevronDown className="w-4 h-4 text-gray-400 group-hover:rotate-180 transition-transform duration-200" />
@@ -48,7 +59,7 @@ export default function Navbar() {
           </div>
         </nav>
 
-        {/* সার্চ বার, কার্ট ও ইউজার সেকশন (ডেস্কটপ) */}
+        {/* সার্চ বার, কার্ট ও ড্রপডাউন সেকশন (ডেস্কটপ) */}
         <div className="hidden lg:flex items-center gap-6">
           <div className="relative w-64">
             <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
@@ -63,31 +74,95 @@ export default function Navbar() {
 
           <Link href="/cart" className="relative p-2 text-gray-700 hover:text-black transition-colors">
             <ShoppingBag className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-green-600 rounded-full"></span>
+            <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-600 rounded-full"></span>
           </Link>
 
-          {/* ইউজার লগইন থাকলে প্রোফাইল এবং লগআউট বাটন, না থাকলে Sign In */}
+          {/* HeroUI Profile Dropdown */}
           {user ? (
-            <div className="flex items-center gap-4">
-              <Link href="/profile" className="flex items-center gap-2 text-sm font-medium text-gray-800 hover:text-black">
-                {user.image ? (
-                  <Image src={user.image} alt={user.name || "User"} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700">
-                    <UserIcon className="w-4 h-4" />
+            <Dropdown>
+              <Dropdown.Trigger className="rounded-full cursor-pointer focus:outline-none">
+                <Avatar className="w-9 h-9">
+                  {user.image ? (
+                    <Avatar.Image alt={user.name || "User"} src={user.image} className="object-cover" />
+                  ) : (
+                    <Avatar.Fallback className="text-xs font-bold bg-emerald-100 text-emerald-600">
+                      {getFallbackText(user.name)}
+                    </Avatar.Fallback>
+                  )}
+                </Avatar>
+              </Dropdown.Trigger>
+              <Dropdown.Popover className="min-w-[200px]">
+                <div className="px-3 pt-3 pb-2 border-b border-gray-100">
+                  <div className="flex items-center gap-2.5">
+                    <Avatar size="sm" className="w-8 h-8 shrink-0">
+                      {user.image ? (
+                        <Avatar.Image alt={user.name || "User"} src={user.image} className="object-cover" />
+                      ) : (
+                        <Avatar.Fallback className="text-xs font-bold bg-emerald-100 text-emerald-600">
+                          {getFallbackText(user.name)}
+                        </Avatar.Fallback>
+                      )}
+                    </Avatar>
+                    <div className="flex flex-col min-w-0">
+                      <p className="text-sm leading-5 font-semibold text-gray-900 truncate">{user.name}</p>
+                      <p className="text-xs leading-none text-gray-500 truncate">{user.email}</p>
+                    </div>
                   </div>
-                )}
-                <span>{user.name}</span>
-              </Link>
-              
-              <button
-                onClick={handleLogout}
-                className="p-2 text-gray-600 hover:text-red-600 transition-colors"
-                title="Logout"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </div>
+                </div>
+
+                <Dropdown.Menu>
+                  {/* Dashboard link (User role অনুযায়ী /admin বা /account) */}
+                  <Dropdown.Item 
+                    id="dashboard" 
+                    textValue="Dashboard"
+                    onClick={() => router.push(dashboardHref)}
+                    className="cursor-pointer"
+                  >
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <Label className="cursor-pointer">Dashboard ({user.role || 'User'})</Label>
+                      <LayoutDashboard className="w-3.5 h-3.5 text-gray-400" />
+                    </div>
+                  </Dropdown.Item>
+
+                  <Dropdown.Item 
+                    id="profile" 
+                    textValue="Profile"
+                    onClick={() => router.push('/account')}
+                    className="cursor-pointer"
+                  >
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <Label className="cursor-pointer">My Account</Label>
+                      <UserIcon className="w-3.5 h-3.5 text-gray-400" />
+                    </div>
+                  </Dropdown.Item>
+
+                  <Dropdown.Item 
+                    id="settings" 
+                    textValue="Settings"
+                    onClick={() => router.push('/account/settings')}
+                    className="cursor-pointer"
+                  >
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <Label className="cursor-pointer">Settings</Label>
+                      <Gear className="size-3.5 text-gray-400" />
+                    </div>
+                  </Dropdown.Item>
+
+                  <Dropdown.Item 
+                    id="logout" 
+                    textValue="Logout" 
+                    variant="danger"
+                    onClick={handleLogout}
+                    className="cursor-pointer text-rose-600 hover:bg-rose-50"
+                  >
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <Label className="cursor-pointer">Log Out</Label>
+                      <ArrowRightFromSquare className="size-3.5 text-rose-500" />
+                    </div>
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown.Popover>
+            </Dropdown>
           ) : (
             <Link
               href="/signin"
@@ -99,7 +174,7 @@ export default function Navbar() {
         </div>
 
         {/* মোবাইল মেনু বাটন */}
-        <div className="flex items-center gap-4 md:hidden">
+        <div className="flex items-center gap-4 lg:hidden">
           <Link href="/cart" className="relative p-2 text-gray-700">
             <ShoppingBag className="w-5 h-5" />
           </Link>
@@ -112,9 +187,9 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* মোবাইল ড্রপডাউন */}
+      {/* মোবাইল ড্রপডাউন ও মেনু */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-gray-100 px-4 pt-2 pb-6 space-y-4">
+        <div className="lg:hidden bg-white border-b border-gray-100 px-4 pt-2 pb-6 space-y-4">
           <div className="relative w-full">
             <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
               <Search className="w-4 h-4" />
@@ -130,12 +205,17 @@ export default function Navbar() {
             <Link href="/categories" className="hover:text-black">Categories</Link>
             <Link href="/quick-links" className="hover:text-black">Quick Links</Link>
             
-            {/* মোবাইল মেনুর জন্য ইউজার অপশন */}
+            {/* মোবাইল ইউজার অপশন */}
             {user ? (
               <div className="pt-2 border-t border-gray-100 flex flex-col space-y-2">
-                <div className="text-sm font-semibold text-gray-900 py-1">
-                  Logged in as: {user.name}
-                </div>
+                <Link 
+                  href={dashboardHref}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full py-2 px-3 bg-emerald-50 text-emerald-700 rounded-lg font-medium flex items-center justify-between"
+                >
+                  <span>Dashboard ({user.role || 'User'})</span>
+                  <LayoutDashboard className="w-4 h-4" />
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="w-full py-2 bg-red-50 text-red-600 rounded-lg text-center font-medium"
