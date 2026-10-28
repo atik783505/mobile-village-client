@@ -53,7 +53,7 @@ export default function Navbar() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
-          <Link href="/shop" className="hover:text-black transition-colors py-2">Shop</Link>
+          <Link href="/allproduct" className="hover:text-black transition-colors py-2">Shop</Link>
           <div className="relative group cursor-pointer flex items-center gap-1 hover:text-black py-2 transition-colors">
             <span>Categories</span>
             <ChevronDown className="w-4 h-4 text-gray-400 group-hover:rotate-180 transition-transform duration-200" />
