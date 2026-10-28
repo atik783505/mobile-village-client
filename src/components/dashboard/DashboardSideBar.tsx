@@ -35,7 +35,7 @@ const navLinkMap = {
   ],
   admin: [
     { name: "Dashboard Overview", href: "/admin", icon: LuLayoutDashboard },
-    { name: "Manage Products", href: "/admin/products", icon: LuClipboardList },
+    { name: "Manage Products", href: "/dashboard/admin/manage-product", icon: LuClipboardList },
     { name: "Categories", href: "/admin/categories", icon: LuFolderTree },
     { name: "Orders & Fulfillment", href: "/admin/orders", icon: LuShoppingBag },
     { name: "Customers", href: "/admin/customers", icon: LuUsers },
