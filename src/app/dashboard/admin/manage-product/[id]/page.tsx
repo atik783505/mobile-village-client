@@ -2,7 +2,7 @@ import { getProduct } from '@/lib/api/product';
 import Image from 'next/image';
 import React from 'react';
 
-interface SingleProductProps {
+export interface SingleProductProps {
   params: Promise<{
     id: string;
   }>;

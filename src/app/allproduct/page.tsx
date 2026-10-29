@@ -113,7 +113,7 @@ const Allproduct = async () => {
                                         </div>
 
                                         <Link
-                                            href={`/dashboard/admin/manage-product/${product.id}`}
+                                            href={`/allproduct/${product.id}`}
                                             className="text-xs font-semibold bg-gray-900 text-white px-3.5 py-2 rounded-xl hover:bg-emerald-600 transition-colors shadow-sm"
                                         >
                                             View

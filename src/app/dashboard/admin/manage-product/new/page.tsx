@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@heroui/react";
-import { Plus, Trash2, ArrowLeft, PackagePlus, ImagePlus, Loader2 } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, PackagePlus, ImagePlus, Loader2, UploadCloud } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ProductData } from "@/types";
@@ -12,6 +12,7 @@ import { createProduct } from "@/lib/actions/product";
 export default function AddProductPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Partial<ProductData>>({
@@ -45,6 +46,37 @@ export default function AddProductPage() {
     const updatedImages = [...(formData.images || [])];
     updatedImages[index] = value;
     setFormData((prev) => ({ ...prev, images: updatedImages }));
+  };
+
+  const handleImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingIndex(index);
+    setErrorMsg(null);
+
+    const imageFormData = new FormData();
+    imageFormData.append("image", file);
+
+    try {
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_API_KEY}`, {
+        method: "POST",
+        body: imageFormData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const imageUrl = data.data.url;
+        handleImageChange(index, imageUrl);
+      } else {
+        setErrorMsg(data.error?.message || "Failed to upload image to ImageBB");
+      }
+    } catch (err) {
+      setErrorMsg("Image upload failed. Please check your connection.");
+    } finally {
+      setUploadingIndex(null);
+    }
   };
 
   const addImageField = () => {
@@ -100,7 +132,6 @@ export default function AddProductPage() {
     };
 
     try {
-      // 🟢 Server Action Call
       const res = await createProduct(finalProductData);
 
       if (res.success) {
@@ -359,6 +390,7 @@ export default function AddProductPage() {
               </div>
             </div>
 
+            {/* Product Images with ImageBB File Upload */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                 <h2 className="text-base font-bold text-gray-900">Product Images</h2>
@@ -368,29 +400,61 @@ export default function AddProductPage() {
                   className="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
                 >
                   <ImagePlus className="w-3.5 h-3.5" />
-                  <span>Add Image URL</span>
+                  <span>Add Field</span>
                 </Button>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {(formData.images || []).map((img, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <input
-                      type="url"
-                      placeholder="https://example.com/image.jpg"
-                      value={img}
-                      onChange={(e) => handleImageChange(index, e.target.value)}
-                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                    />
-                    {(formData.images || []).length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeImageField(index)}
-                        className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
+                  <div key={index} className="p-3 bg-gray-50/70 border border-gray-200 rounded-xl space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="url"
+                        placeholder="Image URL or upload file below"
+                        value={img}
+                        onChange={(e) => handleImageChange(index, e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                      />
+                      {(formData.images || []).length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeImageField(index)}
+                          className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors flex-shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* File Upload Input */}
+                    <div className="flex items-center justify-between">
+                      <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-lg text-xs font-medium transition shadow-sm">
+                        {uploadingIndex === index ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                            <span>Uploading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Choose File</span>
+                          </>
+                        )}
+                       <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleImageUpload(index, e)} // এখানে আগের ভুল কোডটি সংশোধন করা হয়েছে
+                          disabled={uploadingIndex === index}
+                        />
+                      </label>
+
+                      {img && (
+                        <span className="text-[10px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded">
+                          Uploaded / Linked ✓
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
