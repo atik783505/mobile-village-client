@@ -51,7 +51,7 @@ export default function UpdateProductForm({ product }: UpdateProductFormProps) {
         sku: formData.sku,
       };
 
-      const res = await updateProduct(product.id, payload);
+      const res = await updateProduct(product.id!, payload);
 
       if (res.success) {
         router.push("/dashboard/admin/manage-product");
@@ -190,7 +190,7 @@ export default function UpdateProductForm({ product }: UpdateProductFormProps) {
         <div className="flex justify-end gap-3 pt-4">
           <Button
             type="button"
-            variant="flat"
+            variant="ghost"
             onPress={() => router.back()}
             className="px-5 py-2.5 rounded-xl text-gray-600 hover:bg-gray-100"
           >
@@ -198,7 +198,7 @@ export default function UpdateProductForm({ product }: UpdateProductFormProps) {
           </Button>
           <Button
             type="submit"
-            isLoading={loading}
+            isDisabled={loading}
             className="bg-emerald-600 text-white font-medium px-6 py-2.5 rounded-xl hover:bg-emerald-700 shadow-sm shadow-emerald-500/20"
           >
             Update Product

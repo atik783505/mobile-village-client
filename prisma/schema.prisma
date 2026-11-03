@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -14,6 +11,9 @@ enum Role {
   user
   admin
 }
+
+// better-auth er jonno শুধু এই models দরকার
+// Product, Cart, CartItem server project (mobile-village-server) manage kore
 
 model User {
   id            String    @id @default(cuid())

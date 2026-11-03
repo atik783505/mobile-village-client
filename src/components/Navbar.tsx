@@ -76,7 +76,7 @@ export default function Navbar() {
             />
           </div>
 
-          <Link href="/cart" className="relative p-2.5 text-gray-700 hover:text-emerald-600 bg-gray-50 hover:bg-emerald-50/50 rounded-xl transition-all">
+          <Link href="/allcart" className="relative p-2.5 text-gray-700 hover:text-emerald-600 bg-gray-50 hover:bg-emerald-50/50 rounded-xl transition-all">
             <ShoppingBag className="w-5 h-5" />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white"></span>
           </Link>
