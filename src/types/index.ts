@@ -46,4 +46,38 @@ export type ActionResponse<T = unknown> = {
     success: boolean;
     data?: T;
     message?: string;
+    count?: number;
 };
+
+export interface CreateOrderPayload {
+    shippingAddress: string;
+    customerName?: string;
+    phone: string;
+    paymentMethod?: string;
+}
+
+export interface OrderItem {
+    id: string;
+    productId: string;
+    quantity: number;
+    price: number;
+    product: {
+        id: string;
+        name: string;
+        images: string[];
+        category: string;
+    };
+}
+
+export interface Order {
+    id: string;
+    customerName: string;
+    shippingAddress: string;
+    phone: string;
+    totalPrice: number;
+    paymentMethod: string;
+    orderStatus: string;
+    createdAt: string;
+    updatedAt: string;
+    items: OrderItem[];
+}

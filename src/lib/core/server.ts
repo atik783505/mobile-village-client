@@ -27,7 +27,13 @@ export const serverFetch = async (path: string) => {
   });
 
   if (!res.ok) {
-    throw new Error(`Fetch failed: ${res.status}`);
+    // Server er actual error message ber kora
+    let message = `Fetch failed: ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body?.message) message = body.message;
+    } catch {}
+    throw new Error(message);
   }
 
   return res.json();
@@ -54,7 +60,13 @@ export const serverMutation = async (
   });
 
   if (!res.ok) {
-    throw new Error(`Mutation failed: ${res.status}`);
+    // Server er actual error message ber kora
+    let message = `Mutation failed: ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body?.message) message = body.message;
+    } catch {}
+    throw new Error(message);
   }
 
   return res.json();

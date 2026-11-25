@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signUp } from "@/lib/auth-client";
+import Spinner from "@/components/ui/Spinner";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -18,11 +19,7 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
 
-    const { error: signUpError } = await signUp.email({
-      name,
-      email,
-      password,
-    });
+    const { error: signUpError } = await signUp.email({ name, email, password });
 
     setLoading(false);
 
@@ -40,17 +37,12 @@ export default function RegisterPage() {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-gray-900">Create account</h1>
-          <p className="mt-2 text-sm text-gray-500">
-            Join Mobile Village today
-          </p>
+          <p className="mt-2 text-sm text-gray-500">Join Mobile Village today</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
               Full name
             </label>
             <input
@@ -66,10 +58,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email
             </label>
             <input
@@ -85,10 +74,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <input
@@ -113,18 +99,16 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 py-2.5 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
+            {loading && <Spinner size="sm" color="white" />}
             {loading ? "Creating account…" : "Create Account"}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-500">
           Already have an account?{" "}
-          <Link
-            href="/signin"
-            className="font-medium text-black hover:underline"
-          >
+          <Link href="/signin" className="font-medium text-black hover:underline">
             Sign in
           </Link>
         </p>

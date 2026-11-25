@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Avatar } from "@heroui/react";
 import { useSession, authClient } from "@/lib/auth-client";
+import Spinner from "@/components/ui/Spinner";
 import {
   LuLayoutDashboard, LuUsers, LuClipboardList,
   LuFolderTree, LuTag, LuMessageSquare, LuWarehouse,
@@ -28,22 +29,17 @@ const Logo = ({ onClick }: { onClick?: () => void }) => (
 // User (Customer) এবং Admin-এর রুটম্যাপ
 const navLinkMap = {
   user: [
-    { name: "Overview / Account", href: "/account", icon: LuUser },
-    { name: "Order History", href: "/account/orders", icon: LuShoppingBag },
+    { name: "Overview / Account", href: "/dashboard/user", icon: LuUser },
+    { name: "Order History", href: "/dashboard/user/orders", icon: LuShoppingBag },
     { name: "Wishlist & Reviews", href: "/account/wishlist", icon: LuHeart },
     { name: "Cancellation Requests", href: "/account/cancellations", icon: LuCircleX },
   ],
   admin: [
-    { name: "Dashboard Overview", href: "/admin", icon: LuLayoutDashboard },
+    { name: "Dashboard Overview", href: "/dashboard", icon: LuLayoutDashboard },
     { name: "Manage Products", href: "/dashboard/admin/manage-product", icon: LuClipboardList },
-    { name: "Categories", href: "/admin/categories", icon: LuFolderTree },
-    { name: "Orders & Fulfillment", href: "/admin/orders", icon: LuShoppingBag },
-    { name: "Customers", href: "/admin/customers", icon: LuUsers },
-    { name: "Coupons", href: "/admin/coupons", icon: LuTag },
-    { name: "Review Moderation", href: "/admin/reviews", icon: LuMessageSquare },
-    { name: "Inventory & Stock", href: "/admin/inventory", icon: LuWarehouse },
-    { name: "Transactions", href: "/admin/transactions", icon: LuHistory },
-    { name: "Store Settings", href: "/admin/settings", icon: LuSettings },
+    { name: "Orders & Fulfillment", href: "/dashboard/admin/orders", icon: LuShoppingBag },
+    { name: "Customers", href: "/dashboard/admin/customers", icon: LuUsers },
+    { name: "Transactions", href: "/dashboard/admin/transactions", icon: LuHistory },
   ]
 };
 
@@ -94,7 +90,7 @@ function NavLinks({ items, pathname, onItemClick }: { items: any[]; pathname: st
   );
 }
 
-function UserFooter({ user, onSignOut }: { user: any; onSignOut: () => void }) {
+function UserFooter({ user, onSignOut, signOutLoading }: { user: any; onSignOut: () => void; signOutLoading: boolean }) {
   return (
     <div className="px-3 pb-3 pt-4 mt-auto border-t" style={{ borderColor: "var(--border-color)" }}>
       <div className="flex items-center gap-3 mb-3">
@@ -117,10 +113,15 @@ function UserFooter({ user, onSignOut }: { user: any; onSignOut: () => void }) {
         </div>
         <button
           onClick={onSignOut}
+          disabled={signOutLoading}
           title="Sign out"
-          className="p-1.5 rounded-lg transition-colors text-rose-400 hover:bg-rose-500/10 cursor-pointer"
+          className="p-1.5 rounded-lg transition-colors text-rose-400 hover:bg-rose-500/10 cursor-pointer disabled:opacity-60"
         >
-          <LuLogOut className="text-base" />
+          {signOutLoading ? (
+            <Spinner size="sm" color="red" />
+          ) : (
+            <LuLogOut className="text-base" />
+          )}
         </button>
       </div>
     </div>
@@ -131,6 +132,7 @@ export function DashboardSidebar({ initialRole }: { initialRole: string }) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
+  const [signOutLoading, setSignOutLoading] = useState(false);
   const user = session?.user as { name?: string; image?: string; role?: string } | undefined;
 
   // URL পরিবর্তন হলেই মোবাইল সাইডবার বন্ধ হবে
@@ -139,6 +141,7 @@ export function DashboardSidebar({ initialRole }: { initialRole: string }) {
   }, [pathname]);
 
   const handleSignOut = async () => {
+    setSignOutLoading(true);
     await authClient.signOut();
     toast.success("Signed out successfully");
     window.location.href = "/";
@@ -212,7 +215,7 @@ export function DashboardSidebar({ initialRole }: { initialRole: string }) {
               />
             </div>
 
-            {user && <UserFooter user={user} onSignOut={handleSignOut} />}
+            {user && <UserFooter user={user} onSignOut={handleSignOut} signOutLoading={signOutLoading} />}
           </div>
         </div>
       )}
@@ -249,7 +252,7 @@ export function DashboardSidebar({ initialRole }: { initialRole: string }) {
             <NavLinks items={menuItems} pathname={pathname} />
           </div>
 
-          {user && <UserFooter user={user} onSignOut={handleSignOut} />}
+          {user && <UserFooter user={user} onSignOut={handleSignOut} signOutLoading={signOutLoading} />}
         </div>
       </aside>
 

@@ -8,6 +8,8 @@ import { useSession, authClient } from '@/lib/auth-client';
 import { usePathname, useRouter } from 'next/navigation';
 import { Avatar, Dropdown } from "@heroui/react";
 
+import Spinner from "@/components/ui/Spinner";
+
 function getFallbackText(name?: string | null) {
   if (!name) return "US";
   const words = name.trim().split(" ");
@@ -17,6 +19,7 @@ function getFallbackText(name?: string | null) {
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
   const { data: session } = useSession();
   
   const user = session?.user as (NonNullable<typeof session>["user"] & { role?: string }) | undefined;
@@ -30,6 +33,7 @@ export default function Navbar() {
   }
 
   const handleLogout = async () => {
+    setLogoutLoading(true);
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
@@ -37,6 +41,7 @@ export default function Navbar() {
         },
       },
     });
+    setLogoutLoading(false);
   };
 
   const dashboardHref = '/dashboard';
@@ -171,8 +176,12 @@ export default function Navbar() {
                     className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-rose-600 hover:bg-rose-50/80 cursor-pointer transition-colors"
                   >
                     <span className="flex items-center gap-2.5">
-                      <LogOut className="w-4 h-4 text-rose-500" />
-                      <span>Log Out</span>
+                      {logoutLoading ? (
+                        <Spinner size="sm" color="red" />
+                      ) : (
+                        <LogOut className="w-4 h-4 text-rose-500" />
+                      )}
+                      <span>{logoutLoading ? "Signing out…" : "Log Out"}</span>
                     </span>
                   </Dropdown.Item>
                 </Dropdown.Menu>
@@ -236,10 +245,11 @@ export default function Navbar() {
 
                 <button
                   onClick={handleLogout}
-                  className="w-full py-2.5 px-3.5 bg-rose-50 text-rose-600 rounded-xl text-left font-medium flex items-center gap-2"
+                  disabled={logoutLoading}
+                  className="w-full py-2.5 px-3.5 bg-rose-50 text-rose-600 rounded-xl text-left font-medium flex items-center gap-2 disabled:opacity-60"
                 >
-                  <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
+                  {logoutLoading ? <Spinner size="sm" color="red" /> : <LogOut className="w-4 h-4" />}
+                  <span>{logoutLoading ? "Signing out…" : "Logout"}</span>
                 </button>
               </div>
             ) : (
